@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: fx-catalog-service
+
+server:
+  port: 8002
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    # El cliente guarda una copia local del registro; la refrescamos cada 10 s (por defecto 30 s)
+    registry-fetch-interval-seconds: 10
+
+# --- Resilience4j ---------------------------------------------------------
+resilience4j:
+  circuitbreaker:
+    instances:
+      courseService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        # Un rechazo del RateLimiter no cuenta como fallo del servicio de cursos
+        ignoreExceptions:
+          - io.github.resilience4j.ratelimiter.RequestNotPermitted
+  retry:
+    instances:
+      courseService:
+        maxAttempts: 3
+        waitDuration: 500ms
+        eventConsumerBufferSize: 10
+        # Con el circuito OPEN no tiene sentido reintentar: se debe responder de inmediato (fail fast)
+        ignoreExceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+  ratelimiter:
+    instances:
+      courseService:
+        limitForPeriod: 5
+        limitRefreshPeriod: 10s
+        timeoutDuration: 0
+
+# --- Monitoreo con Actuator ----------------------------------------------
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,circuitbreakers,circuitbreakerevents,retries,retryevents,ratelimiters
+  endpoint:
+    health:
+      show-details: always
