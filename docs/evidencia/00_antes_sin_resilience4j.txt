@@ -1,0 +1,6 @@
+--- GET /catalog (sin Resilience4j, course-service caído)
+{"timestamp":"2026-10-21T15:45:56.325+00:00","status":500,"error":"Internal Server Error","path":"/catalog"}
+[HTTP 500]
+--- GET /firstcourse (sin Resilience4j, course-service caído)
+{"timestamp":"2026-10-21T15:45:56.347+00:00","status":500,"error":"Internal Server Error","path":"/firstcourse"}
+[HTTP 500]

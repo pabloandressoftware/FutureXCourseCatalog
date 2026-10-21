@@ -1,0 +1,21 @@
+GET /actuator/health  (componente circuitBreakers)
+{
+  "status": "UP",
+  "details": {
+    "courseService": {
+      "status": "UP",
+      "details": {
+        "failureRate": "0.0%",
+        "failureRateThreshold": "50.0%",
+        "slowCallRate": "0.0%",
+        "slowCallRateThreshold": "100.0%",
+        "bufferedCalls": 5,
+        "slowCalls": 0,
+        "slowFailedCalls": 0,
+        "failedCalls": 0,
+        "notPermittedCalls": 0,
+        "state": "CLOSED"
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+=== ESCENARIO 1: todo funcionando (course-service UP, circuito CLOSED) ===
+  GET / -> [HTTP 200] Welcome to FutureX Course Catalog Course App Home
+  GET /catalog -> [HTTP 200] Our courses are [{"courseid":1,"coursename":"Spring Boot Fundamentals","author":"John Doe"},{"courseid":2,"coursename":"Advanced Java Progra
+  GET /firstcourse -> [HTTP 200] Our first course is Spring Boot Fundamentals
+  Circuit Breaker 'courseService': CLOSED | failureRate -1.0% | failedCalls 0 | notPermitted 0
+
+=== ESCENARIO 2: se detiene fx-course-service -> fallback y apertura del circuito ===
+  [llamada 1]
+  GET /catalog -> [HTTP 200] Fallback: Unable to retrieve course catalog (course service unavailable).
+  [llamada 2]
+  GET /catalog -> [HTTP 200] Fallback: Unable to retrieve course catalog (circuit breaker is OPEN).
+  [llamada 3]
+  GET /catalog -> [HTTP 200] Fallback: Unable to retrieve course catalog (circuit breaker is OPEN).
+  [llamada 4]
+  GET /catalog -> [HTTP 200] Fallback: Unable to retrieve course catalog (circuit breaker is OPEN).
+  [llamada 5]
+  GET /catalog -> [HTTP 200] Fallback: Unable to retrieve course catalog (circuit breaker is OPEN).
+  [llamada 6]
+  GET /catalog -> [HTTP 200] Fallback: Unable to retrieve course catalog (circuit breaker is OPEN).
+  Circuit Breaker 'courseService': OPEN | failureRate 50.0% | failedCalls 4 | notPermitted 5
+
+=== ESCENARIO 3: circuito OPEN rechaza sin intentar la llamada (fail fast) ===
+  GET / -> [HTTP 200] Fallback: Welcome to FutureX Course Catalog, but the course service is not available (circuit breaker is OPEN).
+  GET /firstcourse -> [HTTP 200] Fallback: Unable to retrieve the first course (circuit breaker is OPEN).
+  Circuit Breaker 'courseService': OPEN | failureRate 50.0% | failedCalls 4 | notPermitted 7
+
+=== ESCENARIO 4: se reinicia fx-course-service; tras 5 s el circuito pasa a HALF_OPEN y luego a CLOSED ===
+  (esperando 45 s: Eureka server y la caché local del catálogo deben ver de nuevo a fx-course-service;
+   mientras tanto el circuito ya pasó solo de OPEN a HALF_OPEN tras 5 s)
+  GET / -> [HTTP 200] Welcome to FutureX Course Catalog Course App Home
+  GET /catalog -> [HTTP 200] Our courses are [{"courseid":1,"coursename":"Spring Boot Fundamentals","author":"John Doe"},{"courseid":2,"coursename":"Advanced Java Progra
+  GET /firstcourse -> [HTTP 200] Our first course is Spring Boot Fundamentals
+  Circuit Breaker 'courseService': CLOSED | failureRate -1.0% | failedCalls 0 | notPermitted 0
+
+=== ESCENARIO 5: RateLimiter (5 llamadas / 10 s) sobre /firstcourse ===
+  GET /firstcourse -> [HTTP 200] Our first course is Spring Boot Fundamentals
+  GET /firstcourse -> [HTTP 200] Our first course is Spring Boot Fundamentals
+  GET /firstcourse -> [HTTP 200] Our first course is Spring Boot Fundamentals
+  GET /firstcourse -> [HTTP 200] Our first course is Spring Boot Fundamentals
+  GET /firstcourse -> [HTTP 200] Our first course is Spring Boot Fundamentals
+  GET /firstcourse -> [HTTP 200] Fallback: Unable to retrieve the first course (rate limit exceeded).
+  GET /firstcourse -> [HTTP 200] Fallback: Unable to retrieve the first course (rate limit exceeded).
+
+=== Eventos del Circuit Breaker (actuator/circuitbreakerevents) ===
+   11:01:49.320 SUCCESS None 
+   11:01:49.364 SUCCESS None 
+   11:01:49.364 STATE_TRANSITION HALF_OPEN_TO_CLOSED 
+   11:01:59.456 SUCCESS None 
+   11:01:59.501 SUCCESS None 
+   11:01:59.536 SUCCESS None 
+   11:01:59.565 SUCCESS None 
+   11:01:59.599 SUCCESS None 
+   11:01:59.625 IGNORED_ERROR None io.github.resilience4j.ratelimiter.RequestNotPermitted: RateLimiter 'c
+   11:01:59.649 IGNORED_ERROR None io.github.resilience4j.ratelimiter.RequestNotPermitted: RateLimiter 'c

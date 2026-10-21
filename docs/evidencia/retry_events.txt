@@ -1,0 +1,10 @@
+GET /actuator/retryevents  (buffer de 10 eventos)
+   11:00:51.110 RETRY intento 1
+   11:00:51.614 RETRY intento 2
+   11:00:52.118 ERROR intento 3
+   11:00:52.166 RETRY intento 1
+   11:00:52.668 IGNORED_ERROR intento 0
+   11:00:52.708 IGNORED_ERROR intento 0
+   11:00:52.747 IGNORED_ERROR intento 0
+   11:00:52.780 IGNORED_ERROR intento 0
+   11:00:52.815 IGNORED_ERROR intento 0
